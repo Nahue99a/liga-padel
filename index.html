@@ -171,12 +171,8 @@
         <tbody id="standingsBody"></tbody>
       </table>
       <div class="tubes-counter">
-        <div class="tubes-label">🎾 Tubos comprados</div>
-        <div class="tubes-number" id="tubesCount">0</div>
-        <div class="tubes-buttons">
-          <button class="tubes-btn" id="tubesDecrement">−</button>
-          <button class="tubes-btn" id="tubesIncrement">+</button>
-        </div>
+        <div class="tubes-label">🎾 Ranking</div>
+        <div id="tubesRanking" style="font-size:13px; line-height:1.8;"></div>
       </div>
     </div>
   </section>
@@ -320,7 +316,8 @@ async function saveToCloud() {
 function computeStandings() {
   const stats = {};
   players.forEach(p => stats[p] = { name: p, pj: 0, pg: 0, pp: 0, pts: 0 });
-  matches.forEach(m => {
+  const monthMatches = currentMonth === 'june' ? matches : currentMonth === 'july' ? julyMatches : augustMatches;
+  monthMatches.forEach(m => {
     if (m.winner) {
       const winTeam = m.winner === 'A' ? m.teamA : m.teamB;
       const loseTeam = m.winner === 'A' ? m.teamB : m.teamA;
@@ -406,8 +403,16 @@ function bindMatchButtons() {
 }
 
 function updateTubesDisplay() {
-  const el = document.getElementById('tubesCount');
-  if (el) el.textContent = tubesCount[currentMonth] || 0;
+  const standings = computeStandings();
+  const el = document.getElementById('tubesRanking');
+  if (!el) return;
+  
+  el.innerHTML = standings.map((s, i) => {
+    const isLast = i === standings.length - 1;
+    const icon = isLast ? '🛒 ' : '';
+    const color = isLast ? 'color: var(--accent);' : '';
+    return `<div style="font-weight: ${isLast ? '700' : '500'}; ${color}">${i+1}. ${icon}${s.name} (${s.pts})</div>`;
+  }).join('');
 }
 
 function addTube() {
@@ -503,10 +508,6 @@ document.getElementById('tabAugust').addEventListener('click', () => {
   document.getElementById('tabAugust').classList.add('active');
   updateTubesDisplay();
 });
-
-// Tubes counter
-document.getElementById('tubesIncrement').addEventListener('click', addTube);
-document.getElementById('tubesDecrement').addEventListener('click', removeTube);
 </script>
 </body>
 </html>
