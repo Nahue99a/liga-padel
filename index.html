@@ -212,6 +212,26 @@
     --accent: #3b82f6;
     --header-bg: rgba(255,255,255,0.02);
   }
+  /* Dark-mode element overrides to improve contrast */
+  .dark .match-card { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.04); }
+  .dark table { background: transparent; }
+  .dark thead tr { background: var(--header-bg); }
+  .dark .team-btn {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .dark .team-btn:hover {
+    background: rgba(255,255,255,0.035);
+    box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+    border-color: rgba(59,130,246,0.45);
+  }
+  .dark .team-btn.winner {
+    background: rgba(123,227,166,0.08);
+    color: var(--success-text);
+    border-color: var(--success-border);
+  }
+  .dark .team-btn:disabled { opacity: 0.6; }
   .error-banner {
     background: #fcebeb;
     color: #791f1f;
