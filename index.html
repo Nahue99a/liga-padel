@@ -45,12 +45,18 @@
     gap: 6px;
   }
   .dot {
-    width: 7px; height: 7px; border-radius: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
     background: #97c459;
     flex-shrink: 0;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
+  .dot.syncing { background: #ef9f27; animation: pulse 1.5s infinite ease-in-out; }
   .dot.offline { background: #e24b4a; }
-  .dot.syncing { background: #ef9f27; }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 159, 39, 0.5); }
+    50% { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(239, 159, 39, 0.08); }
+  }
   section { margin-bottom: 28px; }
   .section-label {
     font-size: 13px;
@@ -104,19 +110,23 @@
     flex: 1;
     padding: 10px 8px;
     border: 0.5px solid var(--border);
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--card);
     font-size: 14px;
     font-weight: 500;
     color: var(--text);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s, box-shadow 0.18s;
   }
-  .team-btn:hover { background: #f9f8f4; }
+  .team-btn:hover { background: #f9f8f4; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(27,31,35,0.05); }
   .team-btn.winner {
     background: var(--success-bg);
     color: var(--success-text);
     border-color: var(--success-border);
+  }
+  .team-btn.winner::after {
+    content: ' 🏆';
+    margin-left: 6px;
   }
   .team-btn:disabled { cursor: not-allowed; opacity: 0.85; }
   .vs { font-size: 12px; color: var(--text-tertiary); flex-shrink: 0; }
@@ -152,21 +162,68 @@
     color: var(--success-text);
     font-weight: 500;
   }
+  .theme-toggle {
+    margin-left: 8px;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.18s, background 0.18s, border-color 0.18s;
+  }
+  .theme-toggle:hover { background: #f9f8f4; transform: translateY(-1px); border-color: var(--accent); }
+
+  /* Tabs */
+  .tabs { display:flex; gap:8px; margin: 0 0 12px; }
+  .tab-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.18s, background 0.18s, border-color 0.18s;
+  }
+  .tab-btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .tab-btn.active { box-shadow: 0 2px 10px rgba(0,0,0,0.08); background: linear-gradient(180deg, rgba(0,0,0,0.04), transparent); }
+
+  /* Subtle card shadow and transitions */
+  .match-card { transition: transform 0.12s, box-shadow 0.12s; }
+  .match-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(27,31,35,0.06); }
+
+  /* Dark theme overrides */
+  .dark { background: #0f1720; color: #e6eef9; }
+  .dark :root { }
+  .dark body { background: #0f1720; }
+  .dark .card, .dark table, .dark .match-card, .dark .pin-bar { background: #0b1220; border-color: #172031; }
+  .dark table, .dark th, .dark td { color: #d8e6fb; }
+  .dark .subtitle, .dark .section-label, .dark .vs, .dark .match-date { color: #9fb2d6; }
+  .dark .dot { background: #6ac36a; }
+  .dark .dot.offline { background: #ff6b6b; }
   .error-banner {
     background: #fcebeb;
     color: #791f1f;
     border: 0.5px solid #f09595;
-    border-radius: 10px;
+    border-radius: 10px;    cd C:\Users\nahue\Downloads\paddel_app
+    git init
+    git add index.html
+    git commit -m "Agregar modo oscuro, pestañas y mejoras visuales"
+    git branch -M main
+    git remote add origin https://github.com/Nahue99a/liga-padel.git
+    git push -u origin main
     padding: 10px 14px;
     font-size: 13px;
     margin-bottom: 20px;
     display: none;
+    animation: fadeIn 0.2s ease;
   }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Liga de pádel</h1>
+  <h1>🏆 Liga de pádel</h1>
   <p class="subtitle">Gonza · Roman · Luis · Nahue — 3 puntos por victoria, parejas rotativas</p>
 
   <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Conectando...</span></div>
@@ -175,8 +232,9 @@
 
   <div class="pin-bar" id="pinBar">
     <input type="password" id="pinInput" placeholder="PIN para editar" inputmode="numeric" />
-    <button id="pinBtn">Desbloquear</button>
+    <button id="pinBtn">🔒 Desbloquear</button>
   </div>
+  <div style="display:flex; justify-content:flex-end; margin-bottom:12px;"><button id="themeToggle" class="theme-toggle">🌙 Modo oscuro</button></div>
 
   <section>
     <p class="section-label">Tabla de posiciones</p>
@@ -190,7 +248,12 @@
 
   <section>
     <p class="section-label">Fixture</p>
+    <div class="tabs">
+      <button id="tabFixture" class="tab-btn active">📅 Fixture</button>
+      <button id="tabNext" class="tab-btn">➡️ Próximo mes</button>
+    </div>
     <div id="matchesList"></div>
+    <div id="nextMatchesList" style="display:none;"></div>
   </section>
 </div>
 
@@ -219,9 +282,22 @@ const defaultMatches = [
   { id: "f4", label: "Lunes 29/6",   teamA: ["Roman", "Luis"],  teamB: ["Gonza", "Nahue"], winner: null },
 ];
 
+const defaultNextMatches = [
+  { id: "f5", label: "Viernes 3/7",  teamA: ["Gonza","Roman"],  teamB: ["Luis","Nahue"], winner: null },
+  { id: "f6", label: "Lunes 6/7",    teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
+  { id: "f7", label: "Viernes 10/7", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null },
+  { id: "f8", label: "Lunes 13/7",   teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null },
+  { id: "f9", label: "Viernes 17/7", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null },
+  { id: "f10", label:"Lunes 20/7",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
+  { id: "f11", label:"Viernes 24/7", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
+  { id: "f12", label:"Lunes 27/7",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null }
+];
+
 let matches = JSON.parse(JSON.stringify(defaultMatches));
+let nextMatches = JSON.parse(JSON.stringify(defaultNextMatches));
 let unlocked = false;
 let saving = false;
+let activeTab = 'current'; // 'current' or 'next'
 
 function setStatus(state, text) {
   const dot = document.getElementById('statusDot');
@@ -250,8 +326,9 @@ async function loadFromCloud() {
     });
     if (!res.ok) throw new Error('No se pudo leer la base de datos (' + res.status + ')');
     const json = await res.json();
-    if (json.record && json.record.matches) {
-      matches = json.record.matches;
+    if (json.record) {
+      if (json.record.matches) matches = json.record.matches;
+      if (json.record.nextMatches) nextMatches = json.record.nextMatches;
     }
     setStatus('', 'Sincronizado');
     showError('');
@@ -275,7 +352,7 @@ async function saveToCloud() {
         "Content-Type": "application/json",
         "X-Master-Key": JSONBIN_API_KEY
       },
-      body: JSON.stringify({ matches })
+      body: JSON.stringify({ matches, nextMatches })
     });
     if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
     setStatus('', 'Sincronizado');
@@ -326,12 +403,37 @@ function render() {
     </div>
   `).join('');
 
+  const nextList = document.getElementById('nextMatchesList');
+  nextList.innerHTML = nextMatches.map(m => `
+    <div class="match-card">
+      <p class="match-date">${m.label}</p>
+      <div class="match-row">
+        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-list="next" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
+        <span class="vs">vs</span>
+        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-list="next" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Handlers for current matches
   list.querySelectorAll('button[data-match]').forEach(btn => {
     btn.addEventListener('click', async () => {
       if (!unlocked) return;
       const id = btn.getAttribute('data-match');
       const side = btn.getAttribute('data-side');
       const match = matches.find(m => m.id === id);
+      match.winner = (match.winner === side) ? null : side;
+      render();
+      await saveToCloud();
+    });
+  });
+  // Handlers for next-month matches
+  nextList.querySelectorAll('button[data-list="next"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!unlocked) return;
+      const id = btn.getAttribute('data-match');
+      const side = btn.getAttribute('data-side');
+      const match = nextMatches.find(m => m.id === id);
       match.winner = (match.winner === side) ? null : side;
       render();
       await saveToCloud();
@@ -360,6 +462,33 @@ document.getElementById('pinInput').addEventListener('keydown', (e) => {
 loadFromCloud();
 // Refresca cada 8s para reflejar cambios de otros compañeros sin recargar la página
 setInterval(loadFromCloud, 8000);
+
+// Theme toggle
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(t) {
+  if (t === 'dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark');
+  localStorage.setItem('theme', t);
+  themeToggle.textContent = t === 'dark' ? '☀️ Modo claro' : '🌙 Modo oscuro';
+}
+const savedTheme = localStorage.getItem('theme') || 'light';
+applyTheme(savedTheme);
+themeToggle.addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+
+// Tabs
+document.getElementById('tabFixture').addEventListener('click', () => {
+  activeTab = 'current';
+  document.getElementById('matchesList').style.display = '';
+  document.getElementById('nextMatchesList').style.display = 'none';
+  document.getElementById('tabFixture').classList.add('active');
+  document.getElementById('tabNext').classList.remove('active');
+});
+document.getElementById('tabNext').addEventListener('click', () => {
+  activeTab = 'next';
+  document.getElementById('matchesList').style.display = 'none';
+  document.getElementById('nextMatchesList').style.display = '';
+  document.getElementById('tabNext').classList.add('active');
+  document.getElementById('tabFixture').classList.remove('active');
+});
 </script>
 </body>
 </html>
