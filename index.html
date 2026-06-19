@@ -381,25 +381,6 @@ function render() {
   `).join('');
 
   updateTubesDisplay();
-  bindMatchButtons();
-}
-
-function bindMatchButtons() {
-  document.querySelectorAll('button[data-match]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!unlocked) return;
-      const month = btn.getAttribute('data-month');
-      const id = btn.getAttribute('data-match');
-      const side = btn.getAttribute('data-side');
-      const monthMatches = month === 'june' ? matches : month === 'july' ? julyMatches : augustMatches;
-      const match = monthMatches.find(m => m.id === id);
-      if (match) {
-        match.winner = (match.winner === side) ? null : side;
-        render();
-        await saveToCloud();
-      }
-    });
-  });
 }
 
 function updateTubesDisplay() {
@@ -410,8 +391,9 @@ function updateTubesDisplay() {
   el.innerHTML = standings.map((s, i) => {
     const isLast = i === standings.length - 1;
     const icon = isLast ? '🛒 ' : '';
+    const label = isLast ? ' - Chango' : '';
     const color = isLast ? 'color: var(--accent);' : '';
-    return `<div style="font-weight: ${isLast ? '700' : '500'}; ${color}">${i+1}. ${icon}${s.name} (${s.pts})</div>`;
+    return `<div style="font-weight: ${isLast ? '700' : '500'}; ${color}">${i+1}. ${icon}${s.name}${label} (${s.pts})</div>`;
   }).join('');
 }
 
@@ -484,7 +466,7 @@ document.getElementById('tabJune').addEventListener('click', () => {
   document.getElementById('tabJune').classList.add('active');
   document.getElementById('tabJuly').classList.remove('active');
   document.getElementById('tabAugust').classList.remove('active');
-  updateTubesDisplay();
+  render();
 });
 document.getElementById('tabJuly').addEventListener('click', () => {
   currentMonth = 'july';
@@ -495,7 +477,7 @@ document.getElementById('tabJuly').addEventListener('click', () => {
   document.getElementById('tabJune').classList.remove('active');
   document.getElementById('tabJuly').classList.add('active');
   document.getElementById('tabAugust').classList.remove('active');
-  updateTubesDisplay();
+  render();
 });
 document.getElementById('tabAugust').addEventListener('click', () => {
   currentMonth = 'august';
@@ -506,8 +488,26 @@ document.getElementById('tabAugust').addEventListener('click', () => {
   document.getElementById('tabJune').classList.remove('active');
   document.getElementById('tabJuly').classList.remove('active');
   document.getElementById('tabAugust').classList.add('active');
-  updateTubesDisplay();
+  render();
 });
+
+const matchArea = document.querySelector('.wrap');
+if (matchArea) {
+  matchArea.addEventListener('click', async (event) => {
+    const btn = event.target.closest('button[data-match]');
+    if (!btn) return;
+    if (!unlocked) return;
+    const month = btn.getAttribute('data-month');
+    const id = btn.getAttribute('data-match');
+    const side = btn.getAttribute('data-side');
+    const monthMatches = month === 'june' ? matches : month === 'july' ? julyMatches : augustMatches;
+    const match = monthMatches.find(m => m.id === id);
+    if (!match) return;
+    match.winner = (match.winner === side) ? null : side;
+    render();
+    await saveToCloud();
+  });
+}
 </script>
 </body>
 </html>
