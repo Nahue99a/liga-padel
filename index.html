@@ -7,61 +7,18 @@
 <style>
   :root {
     /* Palette requested: deep blue background, slate cards, white text, soft secondary, green accent */
-    function render() {
-      const standings = computeStandings();
-      const tbody = document.getElementById('standingsBody');
-      const topScore = standings.length ? standings[0].pts : 0;
-      const topCount = standings.filter(s => s.pts === topScore).length;
-      const showLeader = topCount === 1;
-      const bottomScore = standings.length ? standings[standings.length - 1].pts : 0;
-      tbody.innerHTML = standings.map(s => `
-        <tr>
-          <td>${showLeader && s.pts === topScore ? '👑 ' : ''}${s.name}${s.pts === bottomScore ? ' 🛒' : ''}</td>
-          <td>${s.pj}</td>
-          <td>${s.pg}</td>
-          <td>${s.pp}</td>
-          <td class="pts">${s.pts}</td>
-        </tr>
-      `).join('');
+    --bg: #071127;
+    --card: #071827;
+    --border: rgba(255,255,255,0.06);
+    --text: #F8FAFC;
+    --text-secondary: #9FB0C8;
+    --text-tertiary: rgba(159,176,200,0.8);
+    --accent: #22C55E;
+    --header-bg: rgba(2,6,23,0.6);
+    --success-bg: rgba(34,197,94,0.12);
+    --shadow: 0 10px 30px rgba(2,6,23,0.6);
+  }
 
-      const list = document.getElementById('matchesList');
-      list.innerHTML = matches.map(m => `
-        <div class="match-card">
-          <p class="match-date">${m.label}</p>
-          <div class="match-row">
-            <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="june" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
-            <span class="vs">vs</span>
-            <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="june" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
-          </div>
-        </div>
-      `).join('');
-
-      const julyList = document.getElementById('julyMatchesList');
-      julyList.innerHTML = julyMatches.map(m => `
-        <div class="match-card">
-          <p class="match-date">${m.label}</p>
-          <div class="match-row">
-            <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="july" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
-            <span class="vs">vs</span>
-            <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="july" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
-          </div>
-        </div>
-      `).join('');
-
-      const augustList = document.getElementById('augustMatchesList');
-      augustList.innerHTML = augustMatches.map(m => `
-        <div class="match-card">
-          <p class="match-date">${m.label}</p>
-          <div class="match-row">
-            <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
-            <span class="vs">vs</span>
-            <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
-          </div>
-        </div>
-      `).join('');
-
-      bindMatchButtons();
-    }
   .match-row { display:flex; gap:12px; align-items:center; }
 
   /* Team buttons - pill */
