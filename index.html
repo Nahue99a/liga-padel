@@ -47,6 +47,15 @@
   section { margin-bottom: 28px; }
   .section-label { font-size:13px; color:var(--text-secondary); margin:0 0 8px; font-weight:600; }
 
+  .standings-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+  .standings-wrapper table { flex: 1; }
+  .tubes-counter { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 8px 20px rgba(2,6,23,0.45); text-align: center; min-width: 140px; }
+  .tubes-number { font-size: 42px; font-weight: 700; color: var(--accent); margin: 8px 0; }
+  .tubes-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+  .tubes-buttons { display: flex; gap: 6px; }
+  .tubes-btn { flex: 1; padding: 8px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.12s; }
+  .tubes-btn:hover { background: rgba(255,255,255,0.03); border-color: var(--accent); }
+
   /* Table - styled as a card */
   table { width:100%; border-collapse:collapse; background: var(--card); border-radius:12px; overflow:hidden; font-size:14px; box-shadow: 0 8px 20px rgba(2,6,23,0.6); }
   thead tr { background: var(--header-bg); }
@@ -154,22 +163,34 @@
 
   <section>
     <p class="section-label">Tabla de posiciones</p>
-    <table>
-      <thead>
-        <tr><th style="text-align:left;">Jugador</th><th>PJ</th><th>PG</th><th>PP</th><th>Pts</th></tr>
-      </thead>
-      <tbody id="standingsBody"></tbody>
-    </table>
+    <div class="standings-wrapper">
+      <table>
+        <thead>
+          <tr><th style="text-align:left;">Jugador</th><th>PJ</th><th>PG</th><th>PP</th><th>Pts</th></tr>
+        </thead>
+        <tbody id="standingsBody"></tbody>
+      </table>
+      <div class="tubes-counter">
+        <div class="tubes-label">🎾 Tubos comprados</div>
+        <div class="tubes-number" id="tubesCount">0</div>
+        <div class="tubes-buttons">
+          <button class="tubes-btn" id="tubesDecrement">−</button>
+          <button class="tubes-btn" id="tubesIncrement">+</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section>
     <p class="section-label">Fixture</p>
     <div class="tabs">
-      <button id="tabFixture" class="tab-btn active">📅 Junio</button>
-      <button id="tabNext" class="tab-btn">📅 Julio</button>
+      <button id="tabJune" class="tab-btn active">📅 Junio</button>
+      <button id="tabJuly" class="tab-btn">📅 Julio</button>
+      <button id="tabAugust" class="tab-btn">📅 Agosto</button>
     </div>
     <div id="matchesList"></div>
-    <div id="nextMatchesList" style="display:none;"></div>
+    <div id="julyMatchesList" style="display:none;"></div>
+    <div id="augustMatchesList" style="display:none;"></div>
   </section>
 </div>
 
@@ -198,7 +219,7 @@ const defaultMatches = [
   { id: "f4", label: "Lunes 29/6",   teamA: ["Roman", "Luis"],  teamB: ["Gonza", "Nahue"], winner: null },
 ];
 
-const defaultNextMatches = [
+const defaultJulyMatches = [
   { id: "f5", label: "Viernes 3/7",  teamA: ["Gonza","Roman"],  teamB: ["Luis","Nahue"], winner: null },
   { id: "f6", label: "Lunes 6/7",    teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
   { id: "f7", label: "Viernes 10/7", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null },
@@ -209,11 +230,25 @@ const defaultNextMatches = [
   { id: "f12", label:"Lunes 27/7",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null }
 ];
 
+const defaultAugustMatches = [
+  { id: "f13", label: "Viernes 31/7", teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
+  { id: "f14", label: "Lunes 3/8",   teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
+  { id: "f15", label: "Viernes 7/8", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null },
+  { id: "f16", label: "Lunes 10/8",  teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null },
+  { id: "f17", label: "Viernes 14/8", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null },
+  { id: "f18", label: "Lunes 17/8",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
+  { id: "f19", label: "Viernes 21/8", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
+  { id: "f20", label: "Lunes 24/8",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null }
+];
+
 let matches = JSON.parse(JSON.stringify(defaultMatches));
-let nextMatches = JSON.parse(JSON.stringify(defaultNextMatches));
+let julyMatches = JSON.parse(JSON.stringify(defaultJulyMatches));
+let augustMatches = JSON.parse(JSON.stringify(defaultAugustMatches));
 let unlocked = false;
 let saving = false;
-let activeTab = 'current'; // 'current' or 'next'
+let activeTab = 'june';
+let currentMonth = 'june';
+let tubesCount = { june: 0, july: 0, august: 0 };
 
 function setStatus(state, text) {
   const dot = document.getElementById('statusDot');
@@ -244,7 +279,9 @@ async function loadFromCloud() {
     const json = await res.json();
     if (json.record) {
       if (json.record.matches) matches = json.record.matches;
-      if (json.record.nextMatches) nextMatches = json.record.nextMatches;
+      if (json.record.julyMatches) julyMatches = json.record.julyMatches;
+      if (json.record.augustMatches) augustMatches = json.record.augustMatches;
+      if (json.record.tubesCount) tubesCount = json.record.tubesCount;
     }
     setStatus('', 'Sincronizado');
     showError('');
@@ -268,7 +305,7 @@ async function saveToCloud() {
         "Content-Type": "application/json",
         "X-Master-Key": JSONBIN_API_KEY
       },
-      body: JSON.stringify({ matches, nextMatches })
+      body: JSON.stringify({ matches, julyMatches, augustMatches, tubesCount })
     });
     if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
     setStatus('', 'Sincronizado');
@@ -315,54 +352,79 @@ function render() {
     <div class="match-card">
       <p class="match-date">${m.label}</p>
       <div class="match-row">
-        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
+        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="june" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
         <span class="vs">vs</span>
-        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="june" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
       </div>
     </div>
   `).join('');
 
-  const nextList = document.getElementById('nextMatchesList');
-  nextList.innerHTML = nextMatches.map(m => `
+  const julyList = document.getElementById('julyMatchesList');
+  julyList.innerHTML = julyMatches.map(m => `
     <div class="match-card">
       <p class="match-date">${m.label}</p>
       <div class="match-row">
-        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-list="next" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
+        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="july" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
         <span class="vs">vs</span>
-        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-list="next" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="july" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
       </div>
     </div>
   `).join('');
 
-  // Handlers for current matches
-  list.querySelectorAll('button[data-match]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!unlocked) return;
-      const id = btn.getAttribute('data-match');
-      const side = btn.getAttribute('data-side');
-      const match = matches.find(m => m.id === id);
-      match.winner = (match.winner === side) ? null : side;
-      render();
-      await saveToCloud();
-    });
-  });
-  // Handlers for next-month matches
-  nextList.querySelectorAll('button[data-list="next"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if (!unlocked) return;
-      const id = btn.getAttribute('data-match');
-      const side = btn.getAttribute('data-side');
-      const match = nextMatches.find(m => m.id === id);
-      match.winner = (match.winner === side) ? null : side;
-      render();
-      await saveToCloud();
-    });
-  });
+  const augustList = document.getElementById('augustMatchesList');
+  augustList.innerHTML = augustMatches.map(m => `
+    <div class="match-card">
+      <p class="match-date">${m.label}</p>
+      <div class="match-row">
+        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
+        <span class="vs">vs</span>
+        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+      </div>
+    </div>
+  `).join('');
 
-  const pinBar = document.getElementById('pinBar');
-  if (unlocked) {
-    pinBar.innerHTML = `<span class="unlocked-badge">✓ Edición habilitada en este dispositivo</span>`;
-  }
+  updateTubesDisplay();
+  bindMatchButtons();
+}
+
+function bindMatchButtons() {
+  document.querySelectorAll('button[data-match]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!unlocked) return;
+      const month = btn.getAttribute('data-month');
+      const id = btn.getAttribute('data-match');
+      const side = btn.getAttribute('data-side');
+      const monthMatches = month === 'june' ? matches : month === 'july' ? julyMatches : augustMatches;
+      const match = monthMatches.find(m => m.id === id);
+      if (match) {
+        match.winner = (match.winner === side) ? null : side;
+        render();
+        await saveToCloud();
+      }
+    });
+  });
+}
+
+function updateTubesDisplay() {
+  const el = document.getElementById('tubesCount');
+  if (el) el.textContent = tubesCount[currentMonth] || 0;
+}
+
+function addTube() {
+  tubesCount[currentMonth] = (tubesCount[currentMonth] || 0) + 1;
+  updateTubesDisplay();
+  saveToCloud();
+}
+
+function removeTube() {
+  tubesCount[currentMonth] = Math.max(0, (tubesCount[currentMonth] || 0) - 1);
+  updateTubesDisplay();
+  saveToCloud();
+}
+
+const pinBar = document.getElementById('pinBar');
+if (unlocked) {
+  pinBar.innerHTML = `<span class="unlocked-badge">✓ Edición habilitada en este dispositivo</span>`;
 }
 
 document.getElementById('pinBtn').addEventListener('click', () => {
@@ -408,20 +470,43 @@ applyTheme(savedTheme);
 if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
 
 // Tabs
-document.getElementById('tabFixture').addEventListener('click', () => {
-  activeTab = 'current';
+document.getElementById('tabJune').addEventListener('click', () => {
+  currentMonth = 'june';
+  activeTab = 'june';
   document.getElementById('matchesList').style.display = '';
-  document.getElementById('nextMatchesList').style.display = 'none';
-  document.getElementById('tabFixture').classList.add('active');
-  document.getElementById('tabNext').classList.remove('active');
+  document.getElementById('julyMatchesList').style.display = 'none';
+  document.getElementById('augustMatchesList').style.display = 'none';
+  document.getElementById('tabJune').classList.add('active');
+  document.getElementById('tabJuly').classList.remove('active');
+  document.getElementById('tabAugust').classList.remove('active');
+  updateTubesDisplay();
 });
-document.getElementById('tabNext').addEventListener('click', () => {
-  activeTab = 'next';
+document.getElementById('tabJuly').addEventListener('click', () => {
+  currentMonth = 'july';
+  activeTab = 'july';
   document.getElementById('matchesList').style.display = 'none';
-  document.getElementById('nextMatchesList').style.display = '';
-  document.getElementById('tabNext').classList.add('active');
-  document.getElementById('tabFixture').classList.remove('active');
+  document.getElementById('julyMatchesList').style.display = '';
+  document.getElementById('augustMatchesList').style.display = 'none';
+  document.getElementById('tabJune').classList.remove('active');
+  document.getElementById('tabJuly').classList.add('active');
+  document.getElementById('tabAugust').classList.remove('active');
+  updateTubesDisplay();
 });
+document.getElementById('tabAugust').addEventListener('click', () => {
+  currentMonth = 'august';
+  activeTab = 'august';
+  document.getElementById('matchesList').style.display = 'none';
+  document.getElementById('julyMatchesList').style.display = 'none';
+  document.getElementById('augustMatchesList').style.display = '';
+  document.getElementById('tabJune').classList.remove('active');
+  document.getElementById('tabJuly').classList.remove('active');
+  document.getElementById('tabAugust').classList.add('active');
+  updateTubesDisplay();
+});
+
+// Tubes counter
+document.getElementById('tubesIncrement').addEventListener('click', addTube);
+document.getElementById('tubesDecrement').addEventListener('click', removeTube);
 </script>
 </body>
 </html>
