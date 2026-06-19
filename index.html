@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liga de Pádel</title>
+<style>
+  :root {
+    --bg: #f4f3ef;
+    --card: #ffffff;
+    --border: #e2e0d8;
+    --text: #1f1e1b;
+    --text-secondary: #6b6a64;
+    --text-tertiary: #9a988f;
+    --success-bg: #e1f5ee;
+    --success-text: #085041;
+    --success-border: #5dcaa5;
+    --accent: #185fa5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 24px;
+  }
+  .status {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #97c459;
+    flex-shrink: 0;
+  }
+  .dot.offline { background: #e24b4a; }
+  .dot.syncing { background: #ef9f27; }
+  section { margin-bottom: 28px; }
+  .section-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+    font-weight: 500;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+  thead tr { background: #f9f8f4; }
+  th {
+    text-align: center;
+    padding: 10px 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  th:first-child { text-align: left; padding-left: 14px; }
+  td {
+    padding: 11px 8px;
+    text-align: center;
+    border-top: 0.5px solid var(--border);
+  }
+  td:first-child { text-align: left; padding-left: 14px; font-weight: 600; }
+  td.pts { font-weight: 600; }
+  .match-card {
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .match-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin: 0 0 8px;
+  }
+  .match-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .team-btn {
+    flex: 1;
+    padding: 10px 8px;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .team-btn:hover { background: #f9f8f4; }
+  .team-btn.winner {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+  }
+  .team-btn:disabled { cursor: not-allowed; opacity: 0.85; }
+  .vs { font-size: 12px; color: var(--text-tertiary); flex-shrink: 0; }
+  .pin-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: var(--card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+  }
+  .pin-bar input {
+    flex: 1;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .pin-bar button {
+    border: 0.5px solid var(--border);
+    background: var(--card);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pin-bar button:hover { background: #f9f8f4; }
+  .unlocked-badge {
+    font-size: 13px;
+    color: var(--success-text);
+    font-weight: 500;
+  }
+  .error-banner {
+    background: #fcebeb;
+    color: #791f1f;
+    border: 0.5px solid #f09595;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Liga de pádel</h1>
+  <p class="subtitle">Gonza · Roman · Luis · Nahue — 3 puntos por victoria, parejas rotativas</p>
+
+  <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Conectando...</span></div>
+
+  <div class="error-banner" id="errorBanner"></div>
+
+  <div class="pin-bar" id="pinBar">
+    <input type="password" id="pinInput" placeholder="PIN para editar" inputmode="numeric" />
+    <button id="pinBtn">Desbloquear</button>
+  </div>
+
+  <section>
+    <p class="section-label">Tabla de posiciones</p>
+    <table>
+      <thead>
+        <tr><th style="text-align:left;">Jugador</th><th>PJ</th><th>PG</th><th>PP</th><th>Pts</th></tr>
+      </thead>
+      <tbody id="standingsBody"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <p class="section-label">Fixture</p>
+    <div id="matchesList"></div>
+  </section>
+</div>
+
+<script>
+/* ====== CONFIGURACIÓN ====== */
+// 1) Creá una cuenta gratis en https://jsonbin.io y andá a "API Keys" para obtener tu X-Master-Key.
+// 2) Pegala acá abajo.
+const JSONBIN_API_KEY = "$2a$10$mQAnS1Kq..VZt6Q2exLO.uLI23BXVLmVtjWgbTZ1sc4XpHwm4JpGG";
+// 3) La primera vez que abras el sitio con una API key válida y sin BIN_ID,
+//    se crea el bin automáticamente y te va a mostrar el ID en la consola/alerta.
+//    Pegá ese ID acá para que todos lean/escriban el mismo bin.
+let BIN_ID = "6a354225da38895dfedd9a54";
+
+// PIN para habilitar edición (cambialo por el que quieras, son solo números o texto)
+const EDIT_PIN = "2580";
+/* ============================ */
+
+const JSONBIN_BASE = "https://api.jsonbin.io/v3/b";
+
+const players = ["Gonza", "Roman", "Luis", "Nahue"];
+
+const defaultMatches = [
+  { id: "f1", label: "Viernes 19/6", teamA: ["Roman", "Nahue"], teamB: ["Gonza", "Luis"], winner: null },
+  { id: "f2", label: "Lunes 22/6",   teamA: ["Gonza", "Luis"],  teamB: ["Roman", "Nahue"], winner: null },
+  { id: "f3", label: "Viernes 26/6", teamA: ["Gonza", "Roman"], teamB: ["Luis", "Nahue"],  winner: null },
+  { id: "f4", label: "Lunes 29/6",   teamA: ["Roman", "Luis"],  teamB: ["Gonza", "Nahue"], winner: null },
+];
+
+let matches = JSON.parse(JSON.stringify(defaultMatches));
+let unlocked = false;
+let saving = false;
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  const t = document.getElementById('statusText');
+  dot.className = 'dot' + (state === 'offline' ? ' offline' : state === 'syncing' ? ' syncing' : '');
+  t.textContent = text;
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+async function loadFromCloud() {
+  if (!JSONBIN_API_KEY || JSONBIN_API_KEY.startsWith("PEGA_") || !BIN_ID || BIN_ID.startsWith("PEGA_")) {
+    setStatus('offline', 'Sin conexión configurada — usando datos locales de este dispositivo');
+    showError('Este sitio todavía no está conectado a una base de datos compartida. Seguí las instrucciones en el código (sección CONFIGURACIÓN) para que todos vean la misma tabla.');
+    render();
+    return;
+  }
+  setStatus('syncing', 'Sincronizando...');
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    if (!res.ok) throw new Error('No se pudo leer la base de datos (' + res.status + ')');
+    const json = await res.json();
+    if (json.record && json.record.matches) {
+      matches = json.record.matches;
+    }
+    setStatus('', 'Sincronizado');
+    showError('');
+  } catch (e) {
+    setStatus('offline', 'Sin conexión — mostrando últimos datos disponibles');
+    showError('No se pudo conectar a la base de datos compartida: ' + e.message);
+  }
+  render();
+}
+
+async function saveToCloud() {
+  if (!JSONBIN_API_KEY || JSONBIN_API_KEY.startsWith("PEGA_") || !BIN_ID || BIN_ID.startsWith("PEGA_")) {
+    return;
+  }
+  saving = true;
+  setStatus('syncing', 'Guardando...');
+  try {
+    const res = await fetch(`${JSONBIN_BASE}/${BIN_ID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": JSONBIN_API_KEY
+      },
+      body: JSON.stringify({ matches })
+    });
+    if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
+    setStatus('', 'Sincronizado');
+    showError('');
+  } catch (e) {
+    setStatus('offline', 'No se pudo guardar el último cambio');
+    showError('Error al guardar: ' + e.message);
+  }
+  saving = false;
+}
+
+function computeStandings() {
+  const stats = {};
+  players.forEach(p => stats[p] = { name: p, pj: 0, pg: 0, pp: 0, pts: 0 });
+  matches.forEach(m => {
+    if (m.winner) {
+      const winTeam = m.winner === 'A' ? m.teamA : m.teamB;
+      const loseTeam = m.winner === 'A' ? m.teamB : m.teamA;
+      winTeam.forEach(p => { stats[p].pj++; stats[p].pg++; stats[p].pts += 3; });
+      loseTeam.forEach(p => { stats[p].pj++; stats[p].pp++; });
+    }
+  });
+  return Object.values(stats).sort((x, y) => y.pts - x.pts || y.pg - x.pg);
+}
+
+function render() {
+  const standings = computeStandings();
+  const tbody = document.getElementById('standingsBody');
+  tbody.innerHTML = standings.map(s => `
+    <tr>
+      <td>${s.name}</td>
+      <td>${s.pj}</td>
+      <td>${s.pg}</td>
+      <td>${s.pp}</td>
+      <td class="pts">${s.pts}</td>
+    </tr>
+  `).join('');
+
+  const list = document.getElementById('matchesList');
+  list.innerHTML = matches.map(m => `
+    <div class="match-card">
+      <p class="match-date">${m.label}</p>
+      <div class="match-row">
+        <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
+        <span class="vs">vs</span>
+        <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('button[data-match]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!unlocked) return;
+      const id = btn.getAttribute('data-match');
+      const side = btn.getAttribute('data-side');
+      const match = matches.find(m => m.id === id);
+      match.winner = (match.winner === side) ? null : side;
+      render();
+      await saveToCloud();
+    });
+  });
+
+  const pinBar = document.getElementById('pinBar');
+  if (unlocked) {
+    pinBar.innerHTML = `<span class="unlocked-badge">✓ Edición habilitada en este dispositivo</span>`;
+  }
+}
+
+document.getElementById('pinBtn').addEventListener('click', () => {
+  const val = document.getElementById('pinInput').value;
+  if (val === EDIT_PIN) {
+    unlocked = true;
+    render();
+  } else {
+    alert('PIN incorrecto');
+  }
+});
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('pinBtn').click();
+});
+
+loadFromCloud();
+// Refresca cada 8s para reflejar cambios de otros compañeros sin recargar la página
+setInterval(loadFromCloud, 8000);
+</script>
+</body>
+</html>
