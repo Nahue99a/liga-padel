@@ -143,14 +143,16 @@
     .match-row { flex-direction: column; align-items: stretch; }
     .match-row .team-btn { width: 100%; }
     .match-row .vs { margin: 8px 0; text-align: center; }
+    .sets-row { gap: 10px; }
+    .sets-input { min-width: 55px; }
   }
 
   .sets-row { display: flex; gap: 12px; margin-top: 12px; align-items: center; }
-  .sets-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; min-width: 45px; }
-  .sets-inputs { display: flex; gap: 8px; flex: 1; }
-  .sets-input { flex: 1; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: var(--text); text-align: center; font-weight: 600; font-size: 13px; }
+  .sets-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; min-width: 40px; flex-shrink: 0; }
+  .sets-inputs { display: flex; gap: 6px; flex: 1; align-items: center; }
+  .sets-input { flex: 1; min-width: 50px; padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: var(--text); text-align: center; font-weight: 600; font-size: 12px; }
   .sets-input:focus { outline: none; border-color: var(--accent); background: rgba(34,197,94,0.08); }
-  .sets-separator { color: var(--text-secondary); font-weight: 600; }
+  .sets-separator { color: var(--text-secondary); font-weight: 600; font-size: 13px; }
 
   @media (max-width:520px){
     .wrap{padding:12px;}
@@ -158,7 +160,10 @@
     .page-header { gap: 12px; }
     .tab-btn { min-width: 100%; }
     .match-card { margin-bottom: 12px; }
-    .sets-row { margin-top: 10px; }
+    .sets-row { margin-top: 10px; gap: 8px; }
+    .sets-label { font-size: 10px; min-width: 35px; }
+    .sets-inputs { gap: 4px; }
+    .sets-input { padding: 5px 6px; font-size: 11px; min-width: 45px; }
   }
 </style>
 </head>
