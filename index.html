@@ -145,12 +145,20 @@
     .match-row .vs { margin: 8px 0; text-align: center; }
   }
 
+  .sets-row { display: flex; gap: 12px; margin-top: 12px; align-items: center; }
+  .sets-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; min-width: 45px; }
+  .sets-inputs { display: flex; gap: 8px; flex: 1; }
+  .sets-input { flex: 1; padding: 8px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: var(--text); text-align: center; font-weight: 600; font-size: 13px; }
+  .sets-input:focus { outline: none; border-color: var(--accent); background: rgba(34,197,94,0.08); }
+  .sets-separator { color: var(--text-secondary); font-weight: 600; }
+
   @media (max-width:520px){
     .wrap{padding:12px;}
     .team-btn{padding:10px;}
     .page-header { gap: 12px; }
     .tab-btn { min-width: 100%; }
     .match-card { margin-bottom: 12px; }
+    .sets-row { margin-top: 10px; }
   }
 </style>
 </head>
@@ -217,32 +225,32 @@ const JSONBIN_BASE = "https://api.jsonbin.io/v3/b";
 const players = ["Gonza", "Roman", "Luis", "Nahue"];
 
 const defaultMatches = [
-  { id: "f1", label: "Viernes 19/6", teamA: ["Roman", "Nahue"], teamB: ["Gonza", "Luis"], winner: null },
-  { id: "f2", label: "Lunes 22/6",   teamA: ["Gonza", "Nahue"],  teamB: ["Roman", "Luis"], winner: null },
-  { id: "f3", label: "Viernes 26/6", teamA: ["Gonza", "Roman"], teamB: ["Luis", "Nahue"],  winner: null },
-  { id: "f4", label: "Lunes 29/6",   teamA: ["Roman", "Luis"],  teamB: ["Gonza", "Nahue"], winner: null },
+  { id: "f1", label: "Viernes 19/6", teamA: ["Roman", "Nahue"], teamB: ["Gonza", "Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f2", label: "Lunes 22/6",   teamA: ["Gonza", "Nahue"],  teamB: ["Roman", "Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f3", label: "Viernes 26/6", teamA: ["Gonza", "Roman"], teamB: ["Luis", "Nahue"],  winner: null, setsA: null, setsB: null },
+  { id: "f4", label: "Lunes 29/6",   teamA: ["Roman", "Luis"],  teamB: ["Gonza", "Nahue"], winner: null, setsA: null, setsB: null },
 ];
 
 const defaultJulyMatches = [
-  { id: "f5", label: "Viernes 3/7",  teamA: ["Gonza","Roman"],  teamB: ["Luis","Nahue"], winner: null },
-  { id: "f6", label: "Lunes 6/7",    teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
-  { id: "f7", label: "Viernes 10/7", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null },
-  { id: "f8", label: "Lunes 13/7",   teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null },
-  { id: "f9", label: "Viernes 17/7", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null },
-  { id: "f10", label:"Lunes 20/7",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
-  { id: "f11", label:"Viernes 24/7", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
-  { id: "f12", label:"Lunes 27/7",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null }
+  { id: "f5", label: "Viernes 3/7",  teamA: ["Gonza","Roman"],  teamB: ["Luis","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f6", label: "Lunes 6/7",    teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f7", label: "Viernes 10/7", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f8", label: "Lunes 13/7",   teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f9", label: "Viernes 17/7", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f10", label:"Lunes 20/7",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f11", label:"Viernes 24/7", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f12", label:"Lunes 27/7",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null, setsA: null, setsB: null }
 ];
 
 const defaultAugustMatches = [
-  { id: "f13", label: "Viernes 31/7", teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
-  { id: "f14", label: "Lunes 3/8",   teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
-  { id: "f15", label: "Viernes 7/8", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null },
-  { id: "f16", label: "Lunes 10/8",  teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null },
-  { id: "f17", label: "Viernes 14/8", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null },
-  { id: "f18", label: "Lunes 17/8",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null },
-  { id: "f19", label: "Viernes 21/8", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null },
-  { id: "f20", label: "Lunes 24/8",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null }
+  { id: "f13", label: "Viernes 31/7", teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f14", label: "Lunes 3/8",   teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f15", label: "Viernes 7/8", teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f16", label: "Lunes 10/8",  teamA: ["Gonza","Luis"],  teamB: ["Roman","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f17", label: "Viernes 14/8", teamA: ["Roman","Nahue"], teamB: ["Gonza","Luis"], winner: null, setsA: null, setsB: null },
+  { id: "f18", label: "Lunes 17/8",   teamA: ["Gonza","Roman"], teamB: ["Luis","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f19", label: "Viernes 21/8", teamA: ["Roman","Luis"],  teamB: ["Gonza","Nahue"], winner: null, setsA: null, setsB: null },
+  { id: "f20", label: "Lunes 24/8",   teamA: ["Gonza","Nahue"], teamB: ["Roman","Luis"], winner: null, setsA: null, setsB: null }
 ];
 
 let matches = JSON.parse(JSON.stringify(defaultMatches));
@@ -359,6 +367,14 @@ function render() {
         <span class="vs">vs</span>
         <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="june" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
       </div>
+      <div class="sets-row">
+        <span class="sets-label">Sets:</span>
+        <div class="sets-inputs">
+          <input type="text" class="sets-input sets-input-a" data-month="june" data-match="${m.id}" placeholder="0" value="${m.setsA || ''}" ${unlocked ? '' : 'disabled'} />
+          <span class="sets-separator">-</span>
+          <input type="text" class="sets-input sets-input-b" data-month="june" data-match="${m.id}" placeholder="0" value="${m.setsB || ''}" ${unlocked ? '' : 'disabled'} />
+        </div>
+      </div>
     </div>
   `).join('');
 
@@ -371,6 +387,14 @@ function render() {
         <span class="vs">vs</span>
         <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="july" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
       </div>
+      <div class="sets-row">
+        <span class="sets-label">Sets:</span>
+        <div class="sets-inputs">
+          <input type="text" class="sets-input sets-input-a" data-month="july" data-match="${m.id}" placeholder="0" value="${m.setsA || ''}" ${unlocked ? '' : 'disabled'} />
+          <span class="sets-separator">-</span>
+          <input type="text" class="sets-input sets-input-b" data-month="july" data-match="${m.id}" placeholder="0" value="${m.setsB || ''}" ${unlocked ? '' : 'disabled'} />
+        </div>
+      </div>
     </div>
   `).join('');
 
@@ -382,6 +406,14 @@ function render() {
         <button class="team-btn ${m.winner === 'A' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="A" ${unlocked ? '' : 'disabled'}>${m.teamA.join(' / ')}</button>
         <span class="vs">vs</span>
         <button class="team-btn ${m.winner === 'B' ? 'winner' : ''}" data-month="august" data-match="${m.id}" data-side="B" ${unlocked ? '' : 'disabled'}>${m.teamB.join(' / ')}</button>
+      </div>
+      <div class="sets-row">
+        <span class="sets-label">Sets:</span>
+        <div class="sets-inputs">
+          <input type="text" class="sets-input sets-input-a" data-month="august" data-match="${m.id}" placeholder="0" value="${m.setsA || ''}" ${unlocked ? '' : 'disabled'} />
+          <span class="sets-separator">-</span>
+          <input type="text" class="sets-input sets-input-b" data-month="august" data-match="${m.id}" placeholder="0" value="${m.setsB || ''}" ${unlocked ? '' : 'disabled'} />
+        </div>
       </div>
     </div>
   `).join('');
@@ -483,6 +515,24 @@ if (matchArea) {
     if (!match) return;
     match.winner = (match.winner === side) ? null : side;
     render();
+    await saveToCloud();
+  });
+  
+  matchArea.addEventListener('change', async (event) => {
+    const input = event.target.closest('input.sets-input');
+    if (!input) return;
+    if (!unlocked) return;
+    const month = input.getAttribute('data-month');
+    const id = input.getAttribute('data-match');
+    const isSetA = input.classList.contains('sets-input-a');
+    const monthMatches = month === 'june' ? matches : month === 'july' ? julyMatches : augustMatches;
+    const match = monthMatches.find(m => m.id === id);
+    if (!match) return;
+    if (isSetA) {
+      match.setsA = input.value || null;
+    } else {
+      match.setsB = input.value || null;
+    }
     await saveToCloud();
   });
 }
